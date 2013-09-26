@@ -1,0 +1,27 @@
+<html>
+<head>
+<script type="text/javascript">
+var s = "bububu";
+
+function hahahaMe() {
+  alert("Yeah!! " + x.value);
+  y.innerHTML = "<input value='" + s + "'/>";
+}
+
+function filt() {
+  var key = event.keyCode;
+  alert(key);
+  if (key != 96 && key != 97) {
+    event.returnValue = false;
+  }
+}
+</script>
+</head>
+<body>
+<div style="border:1px dashed black; color:#00F">Введите текст: <input id="x" onkeydown="filt()" style="color:green;"/></div>
+<input type="button"
+       value="PushMe!" style="background:yellow; margin:10px 0px; height:22px"
+       onclick="hahahaMe()"/>
+<div style="width:300px; height:200px; background:lightgreen" id="y"></div>
+</body>
+</html>

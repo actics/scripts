@@ -1,0 +1,52 @@
+<job>
+<script language=JScript src=BruteForce.js />
+<script language=JScript src=AhoCorasick.js />
+<script language=JScript src=KarpRabin.js />
+<script language=JScript src=BoyerMoore.js />
+<script>
+	var fso = new ActiveXObject("Scripting.FileSystemObject");
+	function infile(fname) {
+		var file = fso.OpenTextFile(fname);
+		arr = file.ReadAll();
+		file.Close();
+		return arr;
+	}
+	WSH.Echo("Enter file");
+	s = infile(WSH.StdIn.ReadLine());
+	WSH.Echo("");
+	WSH.Echo("Enter substring");
+	ss = WSH.StdIn.ReadLine();
+	if (ss.length<s.length) {
+		det = BruteForce(s,ss);
+		WSH.Echo("");
+		WSH.Echo("Brute-force");
+		WSH.Echo("Detected: "+det.slice(2));
+		WSH.Echo("Time search: "+det[0]+"ms");
+		WSH.Echo("Number of comparisons: "+det[1]);
+		det = AhoCorasick(s,ss);
+		WSH.Echo("");
+		WSH.Echo("Aho-Corasick");
+		WSH.Echo("Detected: "+det.slice(3));
+		WSH.Echo("Time of building FSM: "+det[0]+"ms");
+		WSH.Echo("Time search: "+det[1]+"ms");
+		WSH.Echo("Total time: "+(det[0]+det[1])+"ms");
+		WSH.Echo("Number of comparisons: "+det[2]);
+		det = KarpRabin(s,ss);
+		WSH.Echo("");
+		WSH.Echo("Karp-Rabin");
+		WSH.Echo("Detected: "+det.slice(2));
+		WSH.Echo("Time search: "+det[0]+"ms");
+		WSH.Echo("Number of comparisons: "+det[1]);
+		det = BoyerMoore(s,ss);
+		WSH.Echo("");
+		WSH.Echo("Boyer-Moore");
+		WSH.Echo("Detected: "+det.slice(3));
+		WSH.Echo("Time of building tables: "+det[0]+"ms");
+		WSH.Echo("Time search: "+det[1]+"ms");
+		WSH.Echo("Total time: "+(det[0]+det[1])+"ms");
+		WSH.Echo("Number of comparisons: "+det[2]);
+	}
+	else
+		WSH.Echo("Input string is longer than template.");
+</script>
+</job>

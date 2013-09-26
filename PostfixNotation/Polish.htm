@@ -1,0 +1,126 @@
+<html>
+<head>
+	<title>Polish</title>
+	<link rel="shortcut icon" href="http://www.e1.ru/favicon.ico">
+	<style type="text/css">a{color:red;}</style>
+</head>
+<body bgcolor="lightblue"><center>
+	<H2>Обратная польская нотация</H2><HR>
+	<input type='text' id='in'>
+	<input type='submit' value='Нотация!' onclick='Polish();'>
+	<input type='text' id='outin'>
+	<input type='submit' value='Обратно!' onclick='PolishBack();'>
+	<input type='text' onkeypress='event.returnValue = false;' id='out'></HR>
+</center></body>
+<script>
+input = document.getElementById('in');
+outinput = document.getElementById('outin');
+output = document.getElementById('out');
+Array.prototype.lost = function () { //Возвращает последний элемент массива
+	return this[this.length-1];
+}
+Array.prototype.PressOut = function (pr,l) { // Выдавливает с конца все элементы, приоритет которых больше, либо равен приоритету
+	var lit = [];							 // элемента l, в соответствии с таблицей приоритетов pr. Возвращает новый массив.
+	while ((this.length > 0)&&(pr[l] <= pr[this.lost()]))
+		lit.push(this.pop());
+	return lit;
+}
+Array.prototype.Concat = function (m) { // Конкатениция массивов. Стандартная не работает.
+	var i;
+	for (i=0; i<m.length; i++)
+		this[i+this.length] = m[i];
+}
+String.prototype.Bracket = function (prio, l) { // Заключает строку в скобки, если в ней есть элемент с приоритетом меньшим, чем l, по таблице prio
+	var i;
+	for (i=0; i<this.length; i++)
+		if (this.charAt(i) in prio)
+			if (prio[this.charAt(i)] < prio[l])
+				return "("+this+")";
+	return this;
+}
+function Polish() {
+var prio = {"(" : 0, ")" : 1, "+" : 2, "-" : 2, "*" : 3, "/" : 3};
+	var s = input.value.split(""), i, stack = [], lit = [], p = true, l = true, Br = 0; //  р - флаг для (-х) l - флаг знака
+	for (i=0; i<s.length; i++)
+		if (s[i] == "(") {
+			if (!(p || l)) { // Проверка на а(
+				l = true;
+				break;
+			}
+			stack.push(s[i]);
+			p = true;
+			Br++;
+		}
+		else
+			if (s[i] == ")") {
+				if (p || l) { // Проверка на () и +)
+					l = true;
+					break;
+				}
+				lit.Concat(stack.PressOut(prio,s[i]));
+				stack.pop();
+				Br--;
+			}
+			else
+				if (s[i] in prio) {
+					if (!p && l) { // Проверка на ++
+						l = true;
+						break;
+					}
+					lit.Concat(stack.PressOut(prio,s[i])); // Можно засунуть в if, но нужно ли?
+					stack.push(s[i]);
+					if (p) // Проверка на (знак
+						if (s[i] == "-")
+							lit.push("0");
+						else {
+							l = true;
+							break;
+						}
+					p = false;
+					l = true;
+				}
+				else { // Если текущий сивол - число
+					if (!l) { // Проверка на аа
+						l = true;
+						break;
+					}
+					lit.push(s[i]);
+					p = false;
+					l = false;
+				}
+	if (!l && Br == 0)
+		outinput.value = lit.join("")+stack.reverse().join("");
+	else 
+		outinput.value = "FAIL";
+}
+function PolishBack() {
+var prio = {"+" : 0, "-" : 0, "*" : 1, "/" : 1};
+	var s = outinput.value.split(""), i, stack =[], pr = 5, sl = 0, f = true;
+	for (i=0; i<s.length; i++)
+		if (s[i] in prio) 
+			if (sl > 1) // Если в стеке 2 или больше элементов
+				if (prio[s[i]] > pr) {
+					stack.push([stack.pop().Bracket(prio, s[i]),s[i],stack.pop().Bracket(prio, s[i])].reverse().join(""));
+					pr = prio[s[i]];
+					sl--;
+				}
+				else {
+					stack.push([stack.pop(),s[i],stack.pop()].reverse().join(""));
+					pr = prio[s[i]];
+					sl--;
+				}
+			else {
+				f = false;
+				break;
+			}
+		else { // Если текущий сивол - число
+			stack.push(s[i]);
+			sl++;
+		}
+	if (f && stack.length == 1)
+		output.value = stack.join("");
+	else
+		output.value = "FAIL";
+}
+</script>
+</html>

@@ -1,0 +1,173 @@
+<head>
+<style type="text/css">
+.cell { width:20px; height:20px; border-top:1px solid black; border-left:1px solid black; }
+#spaceHolder { width:601px; border-bottom:1px solid black; border-right:1px solid black; }
+</style>
+</head>
+<body onload="start();">
+<input type="button" onclick="Prelife();" value="Life :)" id='LifeButton'/>
+<input type="checkbox" onclick="checkflag=!checkflag;">Independ
+<div id="spaceHolder"></div>
+</body>
+Width:
+<input type='text' onkeypress='filt();' size='2' value='30' id='inh'>
+Height:
+<input type='text' onkeypress='filt();' size='2' value='30' id='inw'>
+<input type="button" onclick="remove();" value="Resize"/>
+Speed:
+<input type='text' onkeypress='filt();' size='3' value='100' id='inspeed'>
+<input type="button" onclick="speed=parseInt(inputS.value, 10);" value="Save speed"/>
+Time step:
+<input type='text' onkeypress='event.returnValue = false;' size='3' id='outtime'></br>
+<input type="button" onclick="Patternflag=!Patternflag; pattern='Glider'; ColorButton(Glider)" value="Glider" id="BGlider"/>
+<div style='width:300px;position:absolute; left:100%;margin-left:-300px;bottom:10px;'>
+Copiright (c) Alex.Lavrukov@gmail.com 2010
+</div>
+<script>
+space=[[]], alive=[[],[]], w=30, h=30, speed=100, k=0, checkflag=false; Lifeflag=false, Patternflag=false, pattern="";
+inputi = document.getElementById('inh');
+inputj = document.getElementById('inw');
+inputS = document.getElementById('inspeed');
+outputT = document.getElementById('outtime');
+buttonL = document.getElementById('LifeButton');
+Glider = document.getElementById('BGlider');
+//Glider.style.background = "darkgray";
+function ColorButton(Elem) {
+	if (Elem.style.background == "lightgreen")
+		Elem.style.background = "buttonface";
+	else
+		Elem.style.background = "lightgreen";
+}
+function filt() {
+	key = event.keyCode;
+	if (key > 57 || key <48)
+		event.returnValue = false;
+}
+function remove() {
+	var spw = space[0].length
+	var sph = space.length;
+	for (var i=0; i<sph; i++) for (var j=0; j<spw; j++)
+		document.getElementById("spaceHolder").removeChild(space[i][j]);
+	space = [[]];
+	alive = [[],[]];
+	k = 0;
+	h = parseInt(inputi.value, 10);
+	w = parseInt(inputj.value, 10);
+	document.getElementById("spaceHolder").style.width = w*20+1;
+	Lifeflag=false;
+	buttonL.value = "Life :)";
+	visibleBoard(true);
+	start();
+}
+function start() {
+	for (var i=0; i < h; i++) {
+		space[i] = new Array(w);
+		for (var j = 0; j < w; j++) {
+			var o = document.createElement("<span class='cell'>");
+			o.x = i;
+			o.y = j;
+			o.state = o.p = o.h = false;
+			o.onmousedown = function () {
+				this.state = !this.state;
+				if (this.state) {
+					this.style.background = "green";
+					alive[0][k] = this.x;
+					alive[1][k++] = this.y
+				}
+				else {
+					this.style.background = "white";
+					for (var i=0;;i++)
+						if ((alive[0][i] == this.x) && (alive[1][i] == this.y))
+							break;
+					k--;
+					for (; i<k; i++) {
+						alive[0][i] = alive[0][i+1];
+						alive[1][i] = alive[1][i+1];
+					}
+					alive[0].pop();
+					alive[1].pop();
+				}
+				if (Patternflag)
+					vivify(this.x, this.y);
+			}
+			document.getElementById("spaceHolder").appendChild(o);
+			space[i][j] = o;
+		}
+	}
+}
+function $i(a) {
+	return (h + a ) % h;
+}
+function $j(a) {
+	return (w + a ) % w;
+}
+function Prelife() {
+	if (Lifeflag) {
+		Lifeflag = false;
+		buttonL.value = "Life :)";
+		visibleBoard(true);
+	}
+	else {
+		if (checkflag)
+			visibleBoard(false)
+		Lifeflag = checkflag;
+		life();
+		if (Lifeflag)
+			buttonL.value = "Stop :(";
+	}
+}
+function life() {
+	var t9 = new Date().getTime();
+	function superpos(f) {
+		help = [[],[]];
+		help[0] = alive[0].slice(0);
+		help[1] = alive[1].slice(0);
+		var c = k;
+		for (var i=0; i<c; i++)
+			for (var j=1; j>-2; j--) for (var l=1; l>-2; l--)
+				f($i(help[0][i]+j),$j(help[1][i]+l));
+	}
+	function t1(a,b) {
+		if (!space[a][b].h) {
+			var v = 0;
+			for (var i=1; i>-2; i--) for (var j=1; j>-2; j--)
+				if (space[$i(a+i)][$j(b+j)].state && !((i == 0) && (j == 0)))
+					v++;
+			space[a][b].p = ((v==2)&&space[a][b].state||(v==3))?true:false;
+			space[a][b].h = true;
+		}
+	}
+	function t2(a,b) {
+		if (space[a][b].h) {
+			if (!space[a][b].p && space[a][b].state || space[a][b].p && !space[a][b].state)
+				space[a][b].onmousedown();
+			space[a][b].p = false;
+			space[a][b].h = false;
+		}
+	}
+	superpos(t1);
+	superpos(t2);
+	var t8 = new Date().getTime();
+	outputT.value= t8 - t9;
+	if (Lifeflag)
+		setTimeout(life, speed);
+}
+function visibleBoard(x) {
+	var s = x?"visible":"hidden";
+	Glider.style.visibility = s;
+	Patternflag=false;
+}
+function vivify(x, y) {
+	Patternflag = false;
+	if (puttern = "Glider") {
+		space[x][y].onmousedown();
+		space[x][y+1].onmousedown();
+		space[x+1][y+2].onmousedown();
+		space[x+2][y].onmousedown();
+		space[x+2][y+1].onmousedown();
+		space[x+2][y+2].onmousedown();
+	}
+	ColorButton(Glider);
+}
+// При изменении поля останавливать
+</script>

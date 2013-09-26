@@ -1,0 +1,149 @@
+<html>
+<head>
+	<title>Hamming</title>
+	<link rel="shortcut icon" href="http://www.e1.ru/favicon.ico">
+	<style type="text/css">a{color:red;}</style>
+</head>
+<body bgcolor="lightblue"><center>
+	<H2>Кодирование Хемминга</H2><HR>
+	<input type='text' onkeypress='filt();' id='in'>
+	<input type='submit' value='Закодировать' onclick='EnCode();'>
+	<input type='text' onkeypress='filt();' id='outin'>
+	<input type='submit' value='Раскодировать' onclick='DeCode();'>
+	<input type='text' onkeypress='event.returnValue = false;' id='out'></HR>
+</center></body>
+<script>
+input = document.getElementById('in');
+outinput = document.getElementById('outin');
+output = document.getElementById('out');
+function filt() {
+	key = event.keyCode;
+	if (event.keyCode != 48 && key != 49) {
+		event.returnValue = false;
+	}
+}
+function Transpose(Array) {
+	ArrayT = [];
+	for (i=0; i<Array[0].length; i++)
+		ArrayT[i] = [];
+	for (i=0; i<Array.length; i++)
+		for (j=0; j<Array[0].length; j++)
+			ArrayT[j][i] = Array[i][j];
+	return ArrayT;
+}
+function CreateA(inlength) {
+	Ax = Ay = inlength;
+	Arr = [];
+	p = s = 0;
+	for (i=0; i<=Ax-1; i++)
+		if (i+1 == Math.pow(2,p)) {
+			Ax++;
+			p++;
+			Arr[i] = -1;
+		}
+		else {
+			Arr[i] = s;
+			s++;
+		}
+	Ax -= Ay;
+	ArrayA = [];
+	for (i=0; i<Ax; i++) {
+		ArrayA[i] = [];
+		powp = Math.pow(2,i);
+		help = 0;
+		flag = true;
+		for (j=0; j<powp-1; j++)
+			if (Arr[j] != -1)
+				ArrayA[i][Arr[j]] = 0;
+		for (j=powp-1; j<Arr.length; j++) {
+			if (help>=powp) {
+				flag = !flag;
+				help = 0;
+			}
+			if (Arr[j] != -1)
+				if (flag)
+					ArrayA[i][Arr[j]] = 1;
+				else
+					ArrayA[i][Arr[j]] = 0;
+			help++;
+		}
+	}
+	return ArrayA;
+}
+function CreateH(Array) {
+	ArrayH = [];
+	for (i=0; i<Array.length; i++) {
+		ArrayH[i] = [];
+		for (j=0; j<Array[0].length; j++)
+			ArrayH[i][j] = Array[i][j];
+		for (j=Array[0].length; j<Array.length+Array[0].length; j++)
+			if (i == (j-Array[0].length))
+				ArrayH[i][j] = 1;
+			else
+				ArrayH[i][j] = 0;
+	}
+	return ArrayH;
+}
+function CreateG(Array) {
+	ArrayG = [];
+	for (i=0; i<Array.length; i++) {
+		ArrayG[i] = [];
+		for (j=0; j<Array.length; j++)
+			if (i == j)
+				ArrayG[i][j] = 1;
+			else
+				ArrayG[i][j] = 0;
+		for (j=Array.length; j<Array.length+Array[0].length; j++)
+			ArrayG[i][j] = Array[i][j-Array.length];
+	}
+	return ArrayG;
+}
+function Mult(Array1,Array2) {
+	ArrayM = [];
+	for (i=0; i<Array1.length; i++) {
+		ArrayM[i] = [];
+		for (l=0; l<Array2[0].length; l++) {
+			sum = 0;
+			for (j=0; j<Array2.length; j++)
+				sum += Array1[i][j]*Array2[j][l];
+			ArrayM[i][l] = sum%2;
+		}
+	}
+	return ArrayM;
+}
+function EnCode() {
+	A = CreateA(input.value.length);
+	G = CreateG(Transpose(A));
+	a = [];
+	a[0] = input.value.split("");
+	x = Mult(a,G);
+	outinput.value = x[0].join("");
+}
+function DeCode() {
+	s = outinput.value.split("");
+	p = 0;
+	for (i=1; i<s.length+1; i++)
+		if (i == Math.pow(2,p))
+			p++;
+	A = CreateA(s.length-p);
+	H = CreateH(A);
+	x = [];
+	x[0] = outinput.value.split("");
+	E = Mult(H,Transpose(x));
+	error = -1;
+	for (j=0; j<H[0].length; j++) {
+		k = 0;
+		for (i=0; i<H.length; i++)
+			if (E[i][0] == H[i][j])
+				k++;
+		if (k == H.length) {
+			error = j;
+			break;
+		}
+	}
+	if (error != -1)
+		x[0][error] = Math.abs(x[0][error]-1);
+	output.value = x[0].slice(0,A[0].length).join("");
+}
+</script>
+</html>
